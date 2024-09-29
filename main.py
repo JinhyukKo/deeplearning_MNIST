@@ -37,38 +37,33 @@ class SimpleCNN(nn.Module):
         # 입력 채널: 1, 출력 채널: 16, 커널 크기: 3x3
         self.conv1 = nn.Conv2d(1, 16, kernel_size=3, padding=1)
         # Convolutional layer 2
+        # 입력 채널: 16, 출력 채널: 32, 커널 크기: 3x3
         self.conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
-
-        # 중간 계층
+        # 중간 계층 : 두 개의 합성곱 레이어를 거친 후 이미지 크기는 7x7이 됩니다.
         self.fc1 = nn.Linear(32 * 7 * 7, 1024)
         self.fc2 = nn.Linear(1024, 512)
         # Output : 출력 계층
         self.fc3 = nn.Linear(512, 10)
-
-    # ? 모델의 순전파 과정이 기술된 함수입니다. 입력 이미지가 CNN 레이어와 FC 레이어를 어떻게 통과하는지를 나타냅니다.
     def forward(self, x):
-
+        # Convolutional layers
         x = F.leaky_relu(self.conv1(x)) # 첫 번째 합성곱 레이어에 입력 이미지를 넣고 Leaky ReLU 활성화 함수 적용.
         x = F.max_pool2d(x, 2) # 2x2 크기의 max pooling을 적용하여 이미지 크기를 줄입니다 (28x28 → 14x14).
         x = F.leaky_relu(self.conv2(x))
         x = F.max_pool2d(x, 2)
-       
-        x = x.view(-1, 32 * 7 * 7) #  2D feature map을 1D로 변환하여 FC 레이어에 넣기 위해 펼칩니다.
-        # ully connected layer with leaky ReLU
+        x = x.view(-1, 32 * 7 * 7) # 이미지를 1차원 텐서로 변환합니다.
+        # Fully connected layers
         x = F.leaky_relu(self.fc1(x)) 
         x = F.leaky_relu(self.fc2(x)) 
-
         # Output layer
         x = self.fc3(x) # 두 번째 fully connected 레이어로, 10개의 클래스에 대한 예측을 출력합니다.
-
         return x
 
 
 model = SimpleCNN().to(device) 
 criterion = nn.CrossEntropyLoss() 
-# optimizer = optim.SGD(model.parameters(), lr=0.001)
-# optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
-# optimizer = optim.RMSprop(model.parameters(), lr=0.001, alpha=0.9)
+# optimizer = optim.SGD(model.parameters(), lr=0.001) # SGD
+# optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9) # Momentum
+# optimizer = optim.RMSprop(model.parameters(), lr=0.001, alpha=0.9) # RMSprop
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 
